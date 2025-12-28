@@ -1,0 +1,5 @@
+(
+echo * text=auto eol=lf
+echo *.bat text eol=crlf
+echo *.cmd text eol=crlf
+) > .gitattributes
