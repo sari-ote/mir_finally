@@ -1005,6 +1005,7 @@ def _process_batch(db, rows: List[Dict[str, Any]], event_id: int, job_id: int, b
                     gender=gender,
                     id_number=id_number_norm,
                     confirmed_arrival=False,
+                    registration_source="import",  # מקור הרשמה: ייבוא קובץ
                 )
                 new_objects.append(guest)
             

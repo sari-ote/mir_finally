@@ -860,7 +860,7 @@ export default function IncreaseSddForm({ eventId }) {
 					<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
 						<input placeholder="שם חותם הברכה" value={blessingSigner} onChange={e => setBlessingSigner(e.target.value)} style={compactInputStyle} />
 						<textarea placeholder="תוכן הברכה *" value={remarks} onChange={e => setRemarks(e.target.value)} style={{ ...compactInputStyle, minHeight: 60 }} />
-						<input type="file" accept="image/*" onChange={e => setBlessingLogo(e.target.files?.[0] || null)} style={compactInputStyle} />
+						<input type="file" accept="image/png,image/jpeg,image/jpg,application/pdf,.png,.jpg,.jpeg,.pdf" onChange={e => setBlessingLogo(e.target.files?.[0] || null)} style={compactInputStyle} />
 					</div>
 				</div>
 			)}
@@ -979,7 +979,7 @@ export default function IncreaseSddForm({ eventId }) {
 
 function saveGuestFieldValue(eventId, guestId, field_name, value) {
 	const token = localStorage.getItem('access_token');
-	return fetch(`http://localhost:8001/events/${eventId}/guests/${guestId}/field-values`, {
+	return fetch(`http://localhost:8001/guests/events/${eventId}/guests/${guestId}/field-values`, {
 		method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
 		body: JSON.stringify({ guest_id: guestId, field_name, value })
 	});

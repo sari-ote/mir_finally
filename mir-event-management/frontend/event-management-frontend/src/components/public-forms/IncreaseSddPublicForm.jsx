@@ -556,7 +556,7 @@ export default function IncreaseSddPublicForm({ token, apiBase, formMeta, onSucc
             <textarea placeholder="תוכן הברכה *" value={blessingContent} onChange={(e) => setBlessingContent(e.target.value)} style={{ ...compactInputStyle, minHeight: 60 }} />
             <input
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/jpg,application/pdf,.png,.jpg,.jpeg,.pdf"
               onChange={async (e) => {
                 const file = e.target.files?.[0] || null;
                 setBlessingLogo(file);

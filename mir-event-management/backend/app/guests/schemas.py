@@ -76,6 +76,9 @@ class GuestBase(BaseModel):
     notes: Optional[str] = None
     telephonist_notes: Optional[str] = None
     status_description: Optional[str] = None
+    
+    # מקור הרשמה
+    registration_source: Optional[str] = None  # bot / form / manual / import
 
     # כתובת ראשית
     street: Optional[str] = None
@@ -208,6 +211,9 @@ class GuestUpdate(BaseModel):
     notes: Optional[str] = None
     telephonist_notes: Optional[str] = None
     status_description: Optional[str] = None
+    
+    # מקור הרשמה
+    registration_source: Optional[str] = None  # bot / form / manual / import
 
     # כתובת ראשית
     street: Optional[str] = None

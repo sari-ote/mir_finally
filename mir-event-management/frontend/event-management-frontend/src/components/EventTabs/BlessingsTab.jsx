@@ -7,6 +7,7 @@ export default function BlessingsTab({ eventId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchValue, setSearchValue] = useState("");
+  const [handledStatus, setHandledStatus] = useState({});
 
   useEffect(() => {
     const fetchBlessings = async () => {
@@ -22,6 +23,12 @@ export default function BlessingsTab({ eventId }) {
         if (response.ok) {
           const data = await response.json();
           setBlessings(data);
+          // Initialize handled status from data
+          const initialHandled = {};
+          data.forEach(b => {
+            initialHandled[b.id] = b.is_handled || false;
+          });
+          setHandledStatus(initialHandled);
         } else {
           setError('שגיאה בטעינת הברכות');
         }
@@ -37,6 +44,27 @@ export default function BlessingsTab({ eventId }) {
       fetchBlessings();
     }
   }, [eventId]);
+
+  const handleToggleHandled = async (blessingId) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:8001/greetings/${blessingId}/toggle-handled`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        setHandledStatus(prev => ({
+          ...prev,
+          [blessingId]: !prev[blessingId]
+        }));
+      }
+    } catch (err) {
+      console.error('Error toggling handled status:', err);
+    }
+  };
 
   const handleDownloadFile = (filePath, fileName, eventId) => {
     if (!filePath) {
@@ -218,12 +246,22 @@ export default function BlessingsTab({ eventId }) {
                 }}>
                   קובץ
                 </th>
+                <th style={{
+                  padding: "12px 16px",
+                  textAlign: "center",
+                  fontWeight: 600,
+                  color: "#495057",
+                  borderBottom: "2px solid #dee2e6",
+                  width: "80px"
+                }}>
+                  טופל
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredBlessings.length === 0 && searchValue ? (
                 <tr>
-                  <td colSpan={4} style={{
+                  <td colSpan={5} style={{
                     padding: "40px",
                     textAlign: "center",
                     color: "#6c757d"
@@ -321,6 +359,22 @@ export default function BlessingsTab({ eventId }) {
                     ) : (
                       <span style={{ color: "#6c757d" }}>ללא קובץ</span>
                     )}
+                  </td>
+                  <td style={{
+                    padding: "12px 16px",
+                    textAlign: "center"
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={handledStatus[blessing.id] || false}
+                      onChange={() => handleToggleHandled(blessing.id)}
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        cursor: "pointer",
+                        accentColor: "#09b0cb"
+                      }}
+                    />
                   </td>
                 </tr>
                 ))

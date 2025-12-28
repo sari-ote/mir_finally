@@ -457,7 +457,7 @@ export default function WomenSeatingUpdateForm({ eventId }) {
 
 function saveGuestFieldValue(eventId, guestId, field_name, value) {
 	const token = localStorage.getItem('access_token');
-	return fetch(`http://localhost:8001/events/${eventId}/guests/${guestId}/field-values`, {
+	return fetch(`http://localhost:8001/guests/events/${eventId}/guests/${guestId}/field-values`, {
 		method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
 		body: JSON.stringify({ guest_id: guestId, field_name, value })
 	});

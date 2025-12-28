@@ -32,6 +32,9 @@ def get_db():
 @router.post("/", response_model=schemas.GuestOut)
 def create_guest(guest: schemas.GuestCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     try:
+        # סימון מקור הרשמה כהזנה ידנית אם לא צוין
+        if not guest.registration_source:
+            guest.registration_source = "manual"
         result = repository.create_guest(db, guest, user_id=current_user.id)
         if result is None:
             print(f"Failed to create guest - duplicate ID: {guest.id_number} for event {guest.event_id}")
@@ -212,7 +215,7 @@ def filter_guests(
     if name:
         query = query.filter(models.Guest.full_name.ilike(f"%{name}%"))
     if phone:
-        query = query.filter(models.Guest.phone.ilike(f"%{phone}%"))
+        query = query.filter(models.Guest.mobile_phone.ilike(f"%{phone}%"))
 
     return query.all()
 
@@ -227,7 +230,9 @@ def export_guests_to_excel(
     confirmed_only: Optional[bool] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(models.Guest)
+    query = db.query(models.Guest).options(
+        joinedload(models.Guest.field_values).joinedload(models.GuestFieldValue.custom_field)
+    )
     
     # פילטרים
     if event_id:
@@ -241,19 +246,133 @@ def export_guests_to_excel(
 
     guests = query.all()
 
-    data = [
-        {
-            "שם פרטי": g.first_name,
-            "שם משפחה": g.last_name,
-            "טלפון": g.phone or "",
-            "מייל": g.email or "",
+    data = []
+    for g in guests:
+        row = {
+            # פרטים בסיסיים
+            "מזהה": g.id,
+            "אירוע": g.event_id,
+            "שם פרטי": g.first_name or "",
+            "שם אמצעי": g.middle_name or "",
+            "שם משפחה": g.last_name or "",
+            "תואר לפני": g.title_before or "",
+            "תואר אחרי": g.title_after or "",
+            "תואר בן זוג": g.spouse_name or "",
+            "שם אישה": g.wife_name or "",
             "תעודת זהות": g.id_number or "",
-            "מין": g.gender,
+            "מין": g.gender or "",
+            "גיל": g.age or "",
+            "תאריך לידה": str(g.birth_date) if g.birth_date else "",
+            "שפה": g.language or "",
+            
+            # פרטי קשר
+            "טלפון נייד": g.mobile_phone or "",
+            "טלפון בית": g.home_phone or "",
+            "טלפון נוסף 1": g.alt_phone_1 or "",
+            "טלפון נוסף 2": g.alt_phone_2 or "",
+            "טלפון אשה": g.wife_phone or "",
+            "מייל": g.email or "",
+            "מייל 2": g.email_2 or "",
+            
+            # כתובת
+            "רחוב": g.street or "",
+            "מספר בניין": g.building_number or "",
+            "מספר דירה": g.apartment_number or "",
+            "עיר": g.city or "",
+            "שכונה": g.neighborhood or "",
+            "מיקוד": g.postal_code or "",
+            "מדינה": g.country or "",
+            "ארץ": g.state or "",
+            "כתובת למשלוח": g.mailing_address or "",
+            "שם לקבלה": g.recipient_name or "",
+            
+            # מזהים
+            "מספר חשבון": g.account_number or "",
+            "מספר אישי מניג'ר": g.manager_personal_number or "",
+            "Card ID": g.card_id or "",
+            
+            # שיוך וניהול
+            "קבוצה": g.groups or "",
+            "קבוצה מייל": g.email_group or "",
+            "קישור למשתמש": g.user_link or "",
+            "מזהה שגריר": g.ambassador_id or "",
+            "שגריר": g.ambassador or "",
+            "שיוך לטלפנית": g.telephonist_assignment or "",
+            "בית כנסת": g.synagogue or "",
+            
+            # טלפניות ושיחות
+            "סטטוס זכאות ללידים": g.eligibility_status_for_leads or "",
+            "ביקש לחזור בתאריך": str(g.requested_return_date) if g.requested_return_date else "",
+            "שיחה אחרונה עם טלפנית": str(g.last_telephonist_call) if g.last_telephonist_call else "",
+            "סטטוס שיחה אחרונה": g.last_call_status or "",
+            "הערות": g.notes or "",
+            "הערות טלפניות": g.telephonist_notes or "",
+            "תאור סטטוס": g.status_description or "",
+            
+            # בנקים ותשלומים
+            "שם בנק": g.bank or "",
+            "סניף": g.branch or "",
+            "מספר כרטיס אשראי": g.credit_card_number or "",
+            
+            # תרומות
+            "הוק פעיל": "כן" if g.is_hok_active else "לא",
+            "סכום הוק חודשי": g.monthly_hok_amount_nis or "",
+            "סכום תשלום אחרון": g.last_payment_amount or "",
+            "תרומות בשנה האחרונה": g.donations_payments_last_year or "",
+            "סהכ תרומות": g.total_donations_payments or "",
+            "התחייבות לתרומה": g.donation_commitment or "",
+            "יכולת תרומה": g.donation_ability or "",
+            
+            # אירועים ודינרים
+            "דינרים משתתפים": g.dinners_participated or "",
+            "סטטוס חסות/ברכה": g.sponsorship_blessing_status or "",
+            "תוכן הברכה דינר קודם": g.blessing_content_dinner_2024 or "",
+            
+            # הושבות גברים
+            "הושבה גברים קודמת": g.men_seating_feb or "",
+            "הושבה זמני גברים": g.men_temporary_seating_feb or "",
+            "מספר שולחן גברים": g.men_table_number or "",
+            "ליד מי תרצו לשבת": g.seat_near_main or "",
+            
+            # הושבות נשים
+            "הושבה נשים קודמת": g.women_seating_feb or "",
+            "הושבה זמני נשים": g.women_temporary_seating_feb or "",
+            "מספר שולחן נשים": g.women_table_number or "",
+            "השתתפות נשים": g.women_participation_dinner_feb or "",
+            
+            # סטטוס
             "אישור הגעה": "כן" if g.confirmed_arrival else "לא",
-            "אירוע": g.event_id
+            "קוד QR": g.qr_code or "",
+            "זמן צ'ק-אין": str(g.check_in_time) if g.check_in_time else "",
+            "זמן צ'ק-אאוט": str(g.check_out_time) if g.check_out_time else "",
+            "Overbooked": "כן" if g.is_overbooked else "לא",
+            "זמן סריקה אחרון": str(g.last_scan_time) if g.last_scan_time else "",
+            
+            # שדות דינמיים
+            "שדה מותאם 1": g.custom_field_1 or "",
+            "שדה מותאם 2": g.custom_field_2 or "",
+            "שדה מותאם 3": g.custom_field_3 or "",
+            "שדה מותאם 4": g.custom_field_4 or "",
+            "שדה מותאם 5": g.custom_field_5 or "",
+            "שדה מותאם 6": g.custom_field_6 or "",
+            "שדה מותאם 7": g.custom_field_7 or "",
+            "שדה מותאם 8": g.custom_field_8 or "",
+            "שדה מותאם 9": g.custom_field_9 or "",
+            "שדה מותאם 10": g.custom_field_10 or "",
+            "שדה מותאם 11": g.custom_field_11 or "",
+            "שדה מותאם 12": g.custom_field_12 or "",
+            "שדה מותאם 13": g.custom_field_13 or "",
+            "שדה מותאם 14": g.custom_field_14 or "",
+            "שדה מותאם 15": g.custom_field_15 or "",
         }
-        for g in guests
-    ]
+        
+        # הוספת שדות מותאמים אישית מהטבלה הנפרדת
+        if g.field_values:
+            for fv in g.field_values:
+                if fv.custom_field and fv.custom_field.name:
+                    row[fv.custom_field.name] = fv.value or ""
+        
+        data.append(row)
 
     df = pd.DataFrame(data)
     stream = io.BytesIO()
@@ -263,7 +382,7 @@ def export_guests_to_excel(
     return StreamingResponse(
         stream,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=guests.xlsx"}
+        headers={"Content-Disposition": "attachment; filename=guests_full.xlsx"}
     )
 
 @router.get("/export-pdf")
@@ -314,7 +433,7 @@ def export_guests_to_pdf(
         table_data.append([
             guest.first_name or "",
             guest.last_name or "",
-            guest.phone or "",
+            guest.mobile_phone or "",
             guest.email or "",
             guest.gender or "",
             "Yes" if guest.confirmed_arrival else "No"

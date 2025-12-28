@@ -354,7 +354,7 @@ def generate_cards_for_event(db: Session, event_id: int, logo_path: str = None, 
             "event_id": event_id,
             "first_name": guest.first_name,
             "last_name": guest.last_name,
-            "phone": guest.phone or ""
+            "phone": guest.mobile_phone or ""
         })
         
         print(f"QR Code data for {guest.first_name} {guest.last_name}: {qr_data}")

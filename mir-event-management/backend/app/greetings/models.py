@@ -17,6 +17,7 @@ class Greeting(Base):
     phone = Column(String, nullable=True)  # טלפון המוזמן (לצורך תצוגה)
     created_at = Column(DateTime, default=datetime.utcnow)
     is_approved = Column(Boolean, default=False)
+    is_handled = Column(Boolean, default=False)  # האם הברכה טופלה
     
     # קשרים
     guest = relationship("Guest", back_populates="greeting")

@@ -54,7 +54,7 @@ def main(event_id: int = 4):
 
         for g in guests:
             id_norm = _normalize_digits(g.id_number)
-            phone_norm = _normalize_digits(g.phone)
+            phone_norm = _normalize_digits(g.mobile_phone)
             alt_phone_norm = _normalize_digits(g.alt_phone_1)
             first = _normalize_name(g.first_name)
             last = _normalize_name(g.last_name)

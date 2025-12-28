@@ -77,7 +77,7 @@ from app.greetings.router import (
     create_greeting, get_greeting, get_greetings_by_event, get_greeting_by_guest,
     update_greeting, delete_greeting, approve_greeting, get_approved_greetings_by_event,
     get_greetings_by_event_list, create_greeting_with_file, create_or_update_greeting,
-    get_current_greeting_by_name_phone, get_previous_greeting
+    get_current_greeting_by_name_phone, get_previous_greeting, toggle_greeting_handled
 )
 
 # Import from bot router
@@ -221,6 +221,7 @@ router.add_api_route("/greetings/guest/{guest_id}", get_greeting_by_guest, metho
 router.add_api_route("/greetings/{greeting_id}", update_greeting, methods=["PUT"])
 router.add_api_route("/greetings/{greeting_id}", delete_greeting, methods=["DELETE"])
 router.add_api_route("/greetings/{greeting_id}/approve", approve_greeting, methods=["POST"])
+router.add_api_route("/greetings/{greeting_id}/toggle-handled", toggle_greeting_handled, methods=["POST"])
 router.add_api_route("/greetings/event/{event_id}/approved", get_approved_greetings_by_event, methods=["GET"])
 
 # Real-time

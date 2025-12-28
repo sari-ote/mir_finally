@@ -15,6 +15,7 @@ from app.guests import models as guest_models
 from app.payments import schemas as payment_schemas, repository as payment_repository
 from app.tableHead import repository as tablehead_repository, schemas as tablehead_schemas
 from app.greetings import service as greeting_service, schemas as greeting_schemas
+from app.core.email_service import send_greeting_notification_async
 
 router = APIRouter(prefix="/public", tags=["Public Forms"])
 
@@ -150,6 +151,7 @@ def submit_public_form(token: str, payload: schemas.PublicFormSubmission, db: Se
             email=(base.email or "").strip() if base.email else None,
             referral_source=(base.referral_source or "").strip() if base.referral_source else None,
             gender=base.gender,
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         guest = repository.create_guest(db, guest_data)
         if guest is None:
@@ -205,6 +207,7 @@ def submit_public_form(token: str, payload: schemas.PublicFormSubmission, db: Se
                 email=(base.email or "").strip() if base.email else None,
                 referral_source=(base.referral_source or "").strip() if base.referral_source else None,
                 gender=base.gender,
+                registration_source="form",  # מקור הרשמה: טופס ציבורי
             )
             guest = repository.create_guest(db, guest_data)
             if guest is None:
@@ -222,6 +225,7 @@ def submit_public_form(token: str, payload: schemas.PublicFormSubmission, db: Se
             email=(base.email or "").strip() if base.email else None,
             referral_source=(base.referral_source or "").strip() if base.referral_source else None,
             gender=base.gender,
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         guest = repository.create_guest(db, guest_data)
         if guest is None:
@@ -431,6 +435,7 @@ def _handle_vip_public_submission(db: Session, share, guest, base_data: schemas.
             email=None,
             referral_source="vip_registration_extra_guest",
             gender="male" if extra_guest.get("gender") == "זכר" else "female" if extra_guest.get("gender") == "נקבה" else "male",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         new_guest = repository.create_guest(db, eg_payload)
         if not new_guest:
@@ -458,6 +463,7 @@ def _handle_vip_public_submission(db: Session, share, guest, base_data: schemas.
             email=email_value,
             referral_source="vip_registration_spouse",
             gender="male",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -480,6 +486,7 @@ def _handle_vip_public_submission(db: Session, share, guest, base_data: schemas.
             email=email_value,
             referral_source="vip_registration_spouse",
             gender="female",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -515,6 +522,17 @@ def _handle_vip_public_submission(db: Session, share, guest, base_data: schemas.
                 file_name=blessing_file_name
             )
             greeting_service.GreetingService.create_or_update_greeting(db, greeting_data)
+            
+            # שליחת התראה במייל על ברכה חדשה (ברקע)
+            guest_name = f"{guest.first_name or ''} {guest.last_name or ''}".strip() or "אורח"
+            send_greeting_notification_async(
+                guest_name=guest_name,
+                signer_name=blessing_signer,
+                content=blessing_content,
+                phone=phone_value,
+                file_path=blessing_file_path,
+                file_name=blessing_file_name
+            )
         except Exception as e:
             # לא נכשיל את כל הטופס אם יש בעיה בשמירת ברכה
             print(f"Error saving greeting: {e}")
@@ -568,6 +586,7 @@ def _handle_women_seating_public_submission(db: Session, share, guest, base_data
             email=email_value,
             referral_source="women_seating_update_spouse",
             gender="male",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -584,6 +603,7 @@ def _handle_women_seating_public_submission(db: Session, share, guest, base_data
             email=email_value,
             referral_source="women_seating_update_spouse",
             gender="female",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -651,6 +671,7 @@ def _handle_add_guests_public_submission(db: Session, share, guest, base_data: s
             email=email_value,
             referral_source="add_guests_public_spouse",
             gender="female",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -681,6 +702,7 @@ def _handle_add_guests_public_submission(db: Session, share, guest, base_data: s
             email=email_value,
             referral_source="add_guests_public_spouse",
             gender="male",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -779,6 +801,7 @@ def _handle_increase_sdd_public_submission(db: Session, share, guest, base_data:
             email=None,
             referral_source="increase_sdd_extra_guest",
             gender="male" if extra_guest.get("gender") == "זכר" else "female" if extra_guest.get("gender") == "נקבה" else "male",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         new_guest = repository.create_guest(db, eg_payload)
         if not new_guest:
@@ -804,6 +827,7 @@ def _handle_increase_sdd_public_submission(db: Session, share, guest, base_data:
             email=email_value,
             referral_source="increase_sdd_public_spouse",
             gender="male",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -826,6 +850,7 @@ def _handle_increase_sdd_public_submission(db: Session, share, guest, base_data:
             email=email_value,
             referral_source="increase_sdd_public_spouse",
             gender="female",
+            registration_source="form",  # מקור הרשמה: טופס ציבורי
         )
         spouse_guest = repository.create_guest(db, spouse_payload)
         if spouse_guest:
@@ -861,6 +886,17 @@ def _handle_increase_sdd_public_submission(db: Session, share, guest, base_data:
                 file_name=blessing_file_name
             )
             greeting_service.GreetingService.create_or_update_greeting(db, greeting_data)
+            
+            # שליחת התראה במייל על ברכה חדשה (ברקע)
+            guest_name = f"{guest.first_name or ''} {guest.last_name or ''}".strip() or "אורח"
+            send_greeting_notification_async(
+                guest_name=guest_name,
+                signer_name=blessing_signer,
+                content=blessing_content,
+                phone=phone_value,
+                file_path=blessing_file_path,
+                file_name=blessing_file_name
+            )
         except Exception as e:
             # לא נכשיל את כל הטופס אם יש בעיה בשמירת ברכה
             print(f"Error saving greeting: {e}")

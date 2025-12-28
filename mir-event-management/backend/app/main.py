@@ -16,7 +16,7 @@ from app.tableStructure.router import router as table_structure_router
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from backendapp.urls import router
+from backendapp.urls import router  # includes toggle_greeting_handled
 
 app = FastAPI(title=settings.PROJECT_NAME)  # <- יצירת האפליקציה
 

@@ -244,7 +244,7 @@ def export_guest_list(event_id: int, db: Session = Depends(get_db)):
                 "name": guest_name,
                 "table": table_number,
                 "seat": seating.seat_number,
-                "phone": seating.guest.phone if hasattr(seating.guest, 'phone') else "",
+                "phone": seating.guest.mobile_phone or "",
                 "email": seating.guest.email if hasattr(seating.guest, 'email') else ""
             })
         

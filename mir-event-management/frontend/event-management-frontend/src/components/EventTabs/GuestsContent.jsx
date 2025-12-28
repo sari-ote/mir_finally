@@ -111,6 +111,7 @@ const FIELD_FALLBACK = {
   
   // כללי
   "מגדר": ["gender", "מגדר"],
+  "מקור הרשמה": ["registration_source", "מקור הרשמה"],
   "טלפון": ["phone", "טלפון", "mobile_phone"],
   "מספר וואטסאפ": ["whatsapp_number", "מספר וואטסאפ"],
   "מקור הפניה": ["referral_source", "מקור הפניה"],
@@ -911,6 +912,7 @@ export default function GuestsContent() {
     // כללי
     "הערות",
     "מאפיינים",
+    "מקור הרשמה",
   ];
 
   const FIELD_LABELS = {
@@ -925,6 +927,7 @@ export default function GuestsContent() {
     "מספר וואטסאפ": "מספר וואטסאפ",
     gender: "מגדר",
     confirmed_arrival: "אישור הגעה",
+    registration_source: "מקור הרשמה",
   };
 
   // שדות הטבלה - משתמשים במבנה גלובלי (tableStructure), ואם אין אז נופלים ללוגיקה הישנה
@@ -2565,7 +2568,8 @@ export default function GuestsContent() {
       address: 'כתובת',
       referral_source: 'מקור הפניה',
       whatsapp_number: 'מספר וואטסאפ',
-      gender: 'מגדר'
+      gender: 'מגדר',
+      registration_source: 'מקור הרשמה'
     };
     return fieldLabels[fieldName] || fieldName;
   };

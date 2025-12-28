@@ -639,7 +639,7 @@ export default function VipPublicForm({ token, apiBase, formMeta, onSuccess, onE
             />
             <input
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/jpg,application/pdf,.png,.jpg,.jpeg,.pdf"
               onChange={async (e) => {
                 const file = e.target.files?.[0] || null;
                 setBlessingLogo(file);

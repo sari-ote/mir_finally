@@ -59,7 +59,7 @@ async def scan_qr_code(qr_data: QRScanRequest, db: Session = Depends(get_db)):
             if phone:
                 guest = db.query(Guest).filter(
                     Guest.event_id == event_id,
-                    Guest.phone == phone
+                    Guest.mobile_phone == phone
                 ).first()
             
             if not guest and first_name and last_name:

@@ -15,6 +15,7 @@ export default function TicketsTab({ eventId }) {
   const [mapMenuPos, setMapMenuPos] = useState({ top: 0, left: 0 });
   const [lastMapGender, setLastMapGender] = useState('male'); // 'male' | 'female'
   const mapMenuRef = useRef(null);
+  const [showProMessage, setShowProMessage] = useState(false);
 
   // פונקציות לכרטיסים
   const handleCreateSeatingCards = async () => {
@@ -520,19 +521,19 @@ export default function TicketsTab({ eventId }) {
         </button>
 
         <button
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            setMapMenuPos({ top: rect.bottom + window.scrollY + 6, left: rect.left + window.scrollX - 140 });
-            setShowMapMenu((v) => !v);
+          onClick={() => {
+            setShowProMessage(true);
+            setTimeout(() => setShowProMessage(false), 3000);
           }}
           disabled={loading}
           className="tropical-button-secondary"
           style={{
             minWidth: "140px",
-            margin: "4px"
+            margin: "4px",
+            opacity: 0.7
           }}
         >
-          יצוא תמונה מפת ישיבה ▾
+          🔒 יצוא תמונה מפת ישיבה
         </button>
 
         {/* טריגר להפעלת הבוט - דמו */}
@@ -564,6 +565,40 @@ export default function TicketsTab({ eventId }) {
           fontSize: "16px"
         }}>
           טוען...
+        </div>
+      )}
+
+      {/* הודעת PRO */}
+      {showProMessage && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          pointerEvents: "none"
+        }}>
+          <div style={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "#fff",
+            padding: "24px 40px",
+            borderRadius: "16px",
+            fontSize: "20px",
+            fontWeight: 700,
+            boxShadow: "0 12px 40px rgba(102, 126, 234, 0.4)",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 12
+          }}>
+            <span style={{ fontSize: 40 }}>👑</span>
+            <span>שדרג ל-PRO כדי ליהנות מתוכן זה</span>
+          </div>
         </div>
       )}
 
@@ -617,8 +652,8 @@ export default function TicketsTab({ eventId }) {
         </div>
       )}
 
-      {/* תפריט בחירת מגדר לתמונת המפה (צף) */}
-      {showMapMenu && (
+      {/* תפריט בחירת מגדר לתמונת המפה (צף) - מוסתר - PRO feature */}
+      {false && showMapMenu && (
         <div
           style={{
             position: 'absolute',

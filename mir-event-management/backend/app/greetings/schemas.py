@@ -22,6 +22,7 @@ class GreetingUpdate(BaseModel):
     file_name: Optional[str] = None
     phone: Optional[str] = None
     is_approved: Optional[bool] = None
+    is_handled: Optional[bool] = None
 
 class GreetingOut(GreetingBase):
     id: int
@@ -33,6 +34,7 @@ class GreetingOut(GreetingBase):
     phone: Optional[str] = None
     created_at: datetime
     is_approved: bool
+    is_handled: bool = False
     
     class Config:
         from_attributes = True
@@ -50,6 +52,7 @@ class BlessingListOut(BaseModel):
     phone: Optional[str] = None
     created_at: datetime
     is_approved: bool
+    is_handled: bool = False
     # פרטי מוזמן
     guest_first_name: Optional[str] = None
     guest_last_name: Optional[str] = None

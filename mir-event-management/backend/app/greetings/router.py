@@ -3,10 +3,13 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.greetings import schemas, service
 from app.auth.dependencies import get_current_user
+from app.core.email_service import send_greeting_notification_async
+from app.guests import models as guest_models
 import os
 import uuid
 from typing import Optional
 
+# Greetings router with toggle-handled support
 router = APIRouter(prefix="/greetings", tags=["Greetings"])
 
 def get_db():
@@ -69,7 +72,24 @@ async def create_greeting_with_file(
             phone=phone
         )
         
-        return service.GreetingService.create_or_update_greeting(db, greeting_data)
+        result = service.GreetingService.create_or_update_greeting(db, greeting_data)
+        
+        # שליחת התראה במייל על ברכה חדשה (ברקע)
+        try:
+            guest = db.query(guest_models.Guest).filter(guest_models.Guest.id == guest_id).first()
+            guest_name = f"{guest.first_name or ''} {guest.last_name or ''}".strip() if guest else "אורח"
+            send_greeting_notification_async(
+                guest_name=guest_name,
+                signer_name=signer_name,
+                content=content,
+                phone=phone,
+                file_path=file_path,
+                file_name=file_name
+            )
+        except Exception as email_err:
+            print(f"[Email] שגיאה בשליחת התראה: {email_err}")
+        
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -79,7 +99,24 @@ async def create_greeting_with_file(
 def create_or_update_greeting(greeting: schemas.GreetingCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """יצירת ברכה חדשה או עדכון ברכה קיימת"""
     try:
-        return service.GreetingService.create_or_update_greeting(db, greeting)
+        result = service.GreetingService.create_or_update_greeting(db, greeting)
+        
+        # שליחת התראה במייל על ברכה חדשה (ברקע)
+        try:
+            guest = db.query(guest_models.Guest).filter(guest_models.Guest.id == greeting.guest_id).first()
+            guest_name = f"{guest.first_name or ''} {guest.last_name or ''}".strip() if guest else "אורח"
+            send_greeting_notification_async(
+                guest_name=guest_name,
+                signer_name=greeting.signer_name,
+                content=greeting.content,
+                phone=greeting.phone,
+                file_path=greeting.file_path,
+                file_name=greeting.file_name
+            )
+        except Exception as email_err:
+            print(f"[Email] שגיאה בשליחת התראה: {email_err}")
+        
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -119,6 +156,20 @@ def get_previous_greeting_legacy(event_id: int, id_number: str, db: Session = De
     """נתיב תאימות שמפנה ל-by-id (מניעת שגיאות 422 קיימות)"""
     return get_previous_greeting(event_id, id_number, db, current_user)
 
+@router.post("/{greeting_id}/toggle-handled", response_model=schemas.GreetingOut)
+def toggle_greeting_handled(greeting_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    """החלפת סטטוס טופל של ברכה"""
+    from app.greetings import models
+    greeting = db.query(models.Greeting).filter(models.Greeting.id == greeting_id).first()
+    if not greeting:
+        raise HTTPException(status_code=404, detail="Greeting not found")
+    
+    # Toggle the is_handled status
+    greeting.is_handled = not (greeting.is_handled or False)
+    db.commit()
+    db.refresh(greeting)
+    return greeting
+
 @router.get("/{greeting_id}", response_model=schemas.GreetingOut)
 def get_greeting(greeting_id: int, db: Session = Depends(get_db)):
     """קבלת ברכה לפי מזהה"""
@@ -156,6 +207,7 @@ def get_greetings_by_event_list(event_id: int, db: Session = Depends(get_db)):
                 phone=getattr(greeting, 'phone', None) or (guest.mobile_phone if guest else None),
                 created_at=greeting.created_at,
                 is_approved=greeting.is_approved,
+                is_handled=getattr(greeting, 'is_handled', False) or False,
                 guest_first_name=guest.first_name if guest else None,
                 guest_last_name=guest.last_name if guest else None,
                 guest_full_name=guest_full_name

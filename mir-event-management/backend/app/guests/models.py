@@ -78,6 +78,9 @@ class Guest(Base):
     notes = Column(String, nullable=True)  # הערות
     telephonist_notes = Column(String, nullable=True)  # הערות טלפניות
     status_description = Column(String, nullable=True)  # תאור סטטוס
+    
+    # מקור הרשמה
+    registration_source = Column(String, nullable=True)  # מקור הרשמה: bot / form / manual / import
 
     # כתובת ראשית
     street = Column(String, nullable=True)  # רחוב

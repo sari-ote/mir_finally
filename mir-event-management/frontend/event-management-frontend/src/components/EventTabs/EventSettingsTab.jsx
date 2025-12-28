@@ -26,6 +26,10 @@ export default function EventSettingsTab({ eventId }) {
     width: "", 
     height: "" 
   });
+  const [showProMessage, setShowProMessage] = useState(false); // הודעת שדרוג ל-PRO
+  
+  // אלמנטים פתוחים (רק במה וכניסה) - השאר נעולים ל-PRO
+  const FREE_ELEMENT_TYPES = ['stage', 'entrance'];
   
   // Drag and drop state for all elements
   const [draggedElement, setDraggedElement] = useState(null);
@@ -1302,6 +1306,13 @@ export default function EventSettingsTab({ eventId }) {
     }
     if (!newHallElement.element_type) return;
     
+    // בדיקה אם האלמנט נעול ל-PRO
+    if (!FREE_ELEMENT_TYPES.includes(newHallElement.element_type)) {
+      setShowProMessage(true);
+      setTimeout(() => setShowProMessage(false), 3000);
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('access_token');
       const defaults = resolveHallElementDefaults(newHallElement.element_type);
@@ -1763,6 +1774,30 @@ export default function EventSettingsTab({ eventId }) {
           {permissionMessage}
         </div>
       )}
+      
+      {/* הודעת שדרוג ל-PRO */}
+      {showProMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+          color: '#fff',
+          padding: '20px 30px',
+          borderRadius: 16,
+          fontSize: 18,
+          fontWeight: 700,
+          zIndex: 2000,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12
+        }}>
+          <span style={{ fontSize: 28 }}>👑</span> שדרג ל-PRO כדי ליהנות מתוכן זה
+        </div>
+      )}
       {/* טאבים לבחירת אולם */}
       <div className="tropical-filters" style={{ marginBottom: 24 }}>
         <button
@@ -1806,9 +1841,10 @@ export default function EventSettingsTab({ eventId }) {
               >
                 {HALL_ELEMENT_ORDER.map((typeKey) => {
                   const cfg = getHallElementConfig(typeKey);
+                  const isLocked = !FREE_ELEMENT_TYPES.includes(typeKey);
                   return (
                     <option key={typeKey} value={typeKey}>
-                      {cfg.label}
+                      {isLocked ? `🔒 ${cfg.label}` : cfg.label}
                     </option>
                   );
                 })}
