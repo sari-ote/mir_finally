@@ -33,3 +33,7 @@ Thumbs.db
 
 # ===== GENERATED / UPLOADS =====
 uploads/
+
+desktop.ini
+**/desktop.ini
+
