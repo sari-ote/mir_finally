@@ -24,3 +24,16 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+# Uploads / generated files (מאוד חשוב בפרויקט שלך)
+**/uploads/
+**/uploads/**
+
+# Import / temp files
+**/import_job_*_errors.csv
+
+# Build artifacts
+*.map
+
+# OS leftovers
+Desktop.ini
+
