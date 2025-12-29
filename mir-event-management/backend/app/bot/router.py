@@ -46,8 +46,8 @@ def get_confirmed_guests_for_bot(event_id: int, db: Session = Depends(get_db)):
         {
             "guest_id": guest.id,
             "name": f"{guest.first_name} {guest.last_name}",
-            "phone": guest.phone,
-            "whatsapp_number": guest.whatsapp_number
+            "phone": guest.mobile_phone or "",
+            "whatsapp_number": guest.mobile_phone or ""
         }
         for guest in confirmed_guests
     ]
@@ -55,6 +55,8 @@ def get_confirmed_guests_for_bot(event_id: int, db: Session = Depends(get_db)):
 @router.post("/guest/register")
 def register_guest_via_bot(guest_data: guest_schemas.GuestCreate, db: Session = Depends(get_db)):
     """רישום מוזמן דרך בוט"""
+    # סימון מקור הרשמה מהבוט
+    guest_data.registration_source = "bot"
     return guest_repository.create_guest(db, guest_data)
 
 @router.get("/guest/{guest_id}/info")
@@ -67,8 +69,8 @@ def get_guest_info_for_bot(guest_id: int, db: Session = Depends(get_db)):
     return {
         "guest_id": guest.id,
         "name": f"{guest.first_name} {guest.last_name}",
-        "phone": guest.phone,
-        "whatsapp_number": guest.whatsapp_number,
+        "phone": guest.mobile_phone or "",
+        "whatsapp_number": guest.mobile_phone or "",
         "confirmed_arrival": guest.confirmed_arrival,
         "event_id": guest.event_id
     }
@@ -143,8 +145,8 @@ def get_upcoming_reminders(db: Session = Depends(get_db)):
                 "event_location": event.location,
                 "guest_id": guest.id,
                 "guest_name": f"{guest.first_name} {guest.last_name}",
-                "guest_phone": guest.phone,
-                "guest_whatsapp": guest.whatsapp_number,
+                "guest_phone": guest.mobile_phone or "",
+                "guest_whatsapp": guest.mobile_phone or "",
                 "reminder_type": "24h_before",
                 "scheduled_for": event.date - timedelta(hours=24)
             })
@@ -177,8 +179,8 @@ def get_week_before_reminders(db: Session = Depends(get_db)):
                 "event_location": event.location,
                 "guest_id": guest.id,
                 "guest_name": f"{guest.first_name} {guest.last_name}",
-                "guest_phone": guest.phone,
-                "guest_whatsapp": guest.whatsapp_number,
+                "guest_phone": guest.mobile_phone or "",
+                "guest_whatsapp": guest.mobile_phone or "",
                 "reminder_type": "week_before",
                 "scheduled_for": event.date - timedelta(days=7)
             })
@@ -229,8 +231,8 @@ def get_event_notification_data(event_id: int, db: Session = Depends(get_db)):
             {
                 "id": guest.id,
                 "name": f"{guest.first_name} {guest.last_name}",
-                "phone": guest.phone,
-                "whatsapp_number": guest.whatsapp_number,
+                "phone": guest.mobile_phone or "",
+                "whatsapp_number": guest.mobile_phone or "",
                 "email": guest.email,
                 "confirmed_arrival": guest.confirmed_arrival
             }
@@ -291,8 +293,8 @@ def get_event_tickets(event_id: int, db: Session = Depends(get_db)):
             tickets.append({
                 "guest_id": guest.id,
                 "guest_name": f"{guest.first_name} {guest.last_name}",
-                "guest_phone": guest.phone,
-                "guest_whatsapp": guest.whatsapp_number,
+                "guest_phone": guest.mobile_phone or "",
+                "guest_whatsapp": guest.mobile_phone or "",
                 "table_number": table.table_number if table else None,
                 "seat_number": seating.seat_number,
                 "confirmed_arrival": guest.confirmed_arrival
