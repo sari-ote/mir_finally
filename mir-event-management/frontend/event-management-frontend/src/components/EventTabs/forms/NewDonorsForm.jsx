@@ -629,65 +629,6 @@ export default function NewDonorsForm({ eventId }) {
 				return null;
 			}));
 
-			// Create spouse automatically based on participation choices
-			if (participationWomen === 'השתתפות יחידה נשים') {
-				// Create husband with same last name
-				const spousePayload = {
-					event_id: Number(eventId),
-					first_name: 'הרב',
-					last_name: details.lastName, // Same last name as the woman
-					id_number: generateTempId(),
-					address: details.address || '',
-					phone: details.phone || '',
-					email: details.email || '',
-					referral_source: 'new_donors_form_spouse',
-					gender: 'male'
-				};
-				
-				const spouseRes = await fetch('http://localhost:8001/guests', {
-					method: 'POST', 
-					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-					body: JSON.stringify(spousePayload)
-				});
-				
-				if (spouseRes.ok) {
-					const spouseGuest = await spouseRes.json();
-					// Save spouse participation field
-					await saveGuestFieldValue(eventId, spouseGuest.id, 'עדכון השתתפות גברים דינר פ"נ *', 'השתתפות יחיד');
-					// Copy other relevant fields to spouse
-					if (details.occupation) await saveGuestFieldValue(eventId, spouseGuest.id, 'עיסוק', details.occupation);
-					if (details.city) await saveGuestFieldValue(eventId, spouseGuest.id, 'עיר', details.city);
-				}
-			} else if (participationMen === 'השתתפות יחיד') {
-				// Create wife with same last name
-				const spousePayload = {
-					event_id: Number(eventId),
-					first_name: 'גברת',
-					last_name: details.lastName, // Same last name as the man
-					id_number: generateTempId(),
-					address: details.address || '',
-					phone: details.phone || '',
-					email: details.email || '',
-					referral_source: 'new_donors_form_spouse',
-					gender: 'female'
-				};
-				
-				const spouseRes = await fetch('http://localhost:8001/guests', {
-					method: 'POST', 
-					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-					body: JSON.stringify(spousePayload)
-				});
-				
-				if (spouseRes.ok) {
-					const spouseGuest = await spouseRes.json();
-					// Save spouse participation field
-					await saveGuestFieldValue(eventId, spouseGuest.id, 'עדכון השתתפות נשים דינר פ"נ *', 'השתתפות יחידה נשים');
-					// Copy other relevant fields to spouse
-					if (details.occupation) await saveGuestFieldValue(eventId, spouseGuest.id, 'עיסוק', details.occupation);
-					if (details.city) await saveGuestFieldValue(eventId, spouseGuest.id, 'עיר', details.city);
-				}
-			}
-
 			setStep(3);
 		} catch (e) {
 			console.error('Save donor failed:', e);

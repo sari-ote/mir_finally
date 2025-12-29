@@ -347,6 +347,7 @@ export default function GuestsContent() {
   const [duplicateGuests, setDuplicateGuests] = useState([]); // [{ rowIndex, existingGuest, newData, allColumns, row }]
   const [guestsToUpdate, setGuestsToUpdate] = useState([]); // רשימת מוזמנים לעדכון
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
   const [pendingImportData, setPendingImportData] = useState(null); // { rows, customFieldsMap, allColumns, baseFieldMapping }
   const [allCustomFields, setAllCustomFields] = useState([]); // כל השדות הדינמיים מהמסד נתונים
   const [fieldsEnsured, setFieldsEnsured] = useState(false); // האם השדות כבר נוצרו
@@ -2481,7 +2482,15 @@ export default function GuestsContent() {
         alert(msg);
         return;
       }
-      // רענון מהשרת
+      
+      // הצג את ההודעה מיד אחרי שהמחיקה מצליחה
+      setDeleteSuccessMessage("האורח נמחק בהצלחה!");
+      // העלם את ההודעה אחרי 3 שניות
+      setTimeout(() => {
+        setDeleteSuccessMessage('');
+      }, 3000);
+      
+      // רענון מהשרת ברקע (אחרי שההודעה כבר מוצגת)
       const token = localStorage.getItem('access_token');
       const [guestsWithFieldsData, customFieldsData] = await Promise.all([
         fetch(`http://localhost:8001/guests/event/${eventId}/with-fields`, {
@@ -2493,7 +2502,6 @@ export default function GuestsContent() {
       ]);
       setGuests(Array.isArray(guestsWithFieldsData) ? guestsWithFieldsData : []);
       setAllCustomFields(Array.isArray(customFieldsData) ? customFieldsData : []);
-      alert("האורח נמחק בהצלחה!");
     } catch (error) {
       alert("שגיאה במחיקת אורח");
       console.error(error);
@@ -2576,6 +2584,27 @@ export default function GuestsContent() {
 
   return (
     <div style={{ flex: 1 }}>
+      {/* הודעת הצלחה למחיקה - נעלמת אוטומטית אחרי 3 שניות */}
+      {deleteSuccessMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#10b981',
+          color: 'white',
+          padding: '16px 24px',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+          zIndex: 10000,
+          fontSize: '16px',
+          fontWeight: 600,
+          animation: 'fadeIn 0.3s ease-in',
+          maxWidth: '400px',
+          transition: 'opacity 0.3s ease-out'
+        }}>
+          {deleteSuccessMessage}
+        </div>
+      )}
       {/* דיאלוג כפילויות */}
       {showDuplicateDialog && duplicateGuests.length > 0 && (
         <div style={{
