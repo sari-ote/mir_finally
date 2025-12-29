@@ -281,51 +281,9 @@ export default function AddGuestsForm({ eventId }) {
 			}
 
 			// extra guests removed per request
-
+			
 			await Promise.all(requests);
-
-			// Create spouse automatically based on participation choices
-			if (participationMen === 'השתתפות יחיד') {
-				// Create wife with same last name
-				const spousePayload = {
-					event_id: Number(eventId),
-					first_name: 'גברת',
-					last_name: lastName,
-					id_number: generateSpouseId(),
-					street: street || '',
-					building_number: buildingNumber || '',
-					neighborhood: neighborhood || '',
-					city: city || '',
-					mobile_phone: `${dialCode} ${phone}`.trim(),
-					email: email,
-					referral_source: 'add_guests_form_spouse',
-					gender: 'female',
-					ambassador: enteredBy || '',
-					donation_ability: donationAbility || '',
-					women_participation_dinner_feb: 'השתתפות יחידה נשים',
-				};
-				
-				const spouseRes = await fetch('http://localhost:8001/guests', {
-					method: 'POST', 
-					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-					body: JSON.stringify(spousePayload)
-				});
-				
-				if (spouseRes.ok) {
-					const spouseGuest = await spouseRes.json();
-					// Save spouse participation field
-					await saveGuestFieldValue(eventId, spouseGuest.id, 'עדכון השתתפות נשים דינר פ"נ *', 'השתתפות יחידה נשים');
-					// Copy other relevant fields to spouse
-					if (street) await saveGuestFieldValue(eventId, spouseGuest.id, 'רחוב', street);
-					if (city) await saveGuestFieldValue(eventId, spouseGuest.id, 'עיר', city);
-					if (neighborhood) await saveGuestFieldValue(eventId, spouseGuest.id, 'שכונה', neighborhood);
-					if (buildingNumber) await saveGuestFieldValue(eventId, spouseGuest.id, 'מספר בנין', buildingNumber);
-					if (donationAbility) await saveGuestFieldValue(eventId, spouseGuest.id, 'יכולת תרומה', donationAbility);
-					if (enteredBy) await saveGuestFieldValue(eventId, spouseGuest.id, 'הוכנס למערכת ע"י *', enteredBy);
-					if (remarks) await saveGuestFieldValue(eventId, spouseGuest.id, 'הערות', remarks);
-				}
-			}
-
+			
 			alert('הוספת האורחים נשמרה בהצלחה');
 			// reset
 			setFirstName(''); setLastName(''); setSpouseName(''); setIdNumber('');

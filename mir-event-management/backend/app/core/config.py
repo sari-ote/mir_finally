@@ -13,6 +13,14 @@ class Settings(BaseSettings):
     NEDARIM_PLUS_MOSAD_ID: str = ""  # מזהה מוסד (7 ספרות)
     NEDARIM_PLUS_API_VALID: str = ""  # טקסט אימות
     NEDARIM_PLUS_CALLBACK_IP: str = "18.194.219.73"  # IP של נדרים פלוס לאימות
+    
+    # Email Configuration (SMTP)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""  # כתובת המייל לשליחה
+    SMTP_PASSWORD: str = ""  # App Password של Gmail
+    GREETING_NOTIFICATION_EMAIL: str = ""  # המייל שיקבל התראות על ברכות
+    SEND_GREETING_EMAILS: bool = False  # האם לשלוח מיילים על ברכות חדשות
 
     class Config:
         env_file = ".env"

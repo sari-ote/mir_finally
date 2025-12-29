@@ -872,6 +872,11 @@ def delete_guest(db: Session, guest_id: int, user_id: int = None):
         for seating in seatings:
             db.delete(seating)
         
+        # מחיקת רשומות קשורות בטבלת guest_field_values
+        field_values = db.query(models.GuestFieldValue).filter(models.GuestFieldValue.guest_id == guest_id).all()
+        for field_value in field_values:
+            db.delete(field_value)
+        
         # תיעוד בלוג לפני המחיקה
         log_change(
             db=db,

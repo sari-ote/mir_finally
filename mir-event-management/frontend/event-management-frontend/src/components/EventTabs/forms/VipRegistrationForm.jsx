@@ -417,67 +417,6 @@ export default function VipRegistrationForm({ eventId }) {
 
 			await Promise.all(requests);
 
-			// Create spouse automatically based on participation choices
-			if (participationWomen === 'השתתפות יחידה נשים') {
-				// Create husband with same last name
-				const spousePayload = {
-					event_id: Number(eventId),
-					first_name: 'הרב',
-					last_name: lastName, // Same last name as the woman
-					id_number: generateTempId(),
-					address: [street, buildingNumber, apartment, neighborhood, city].filter(Boolean).join(' '),
-					phone: `${dialCode} ${phone}`.trim(), // Same phone
-					email: email, // Same email
-					referral_source: 'vip_registration_spouse',
-					gender: 'male'
-				};
-				
-				const spouseRes = await fetch('http://localhost:8001/guests', {
-					method: 'POST', 
-					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-					body: JSON.stringify(spousePayload)
-				});
-				
-				if (spouseRes.ok) {
-					const spouseGuest = await spouseRes.json();
-					// Save spouse participation field
-					await saveGuestFieldValue(eventId, spouseGuest.id, 'עדכון השתתפות גברים דינר פ"נ *', 'השתתפות יחיד');
-					// Copy other relevant fields to spouse
-					if (occupation) await saveGuestFieldValue(eventId, spouseGuest.id, 'עיסוק', occupation);
-					if (donationAbility) await saveGuestFieldValue(eventId, spouseGuest.id, 'יכולת תרומה', donationAbility);
-					if (enteredBy) await saveGuestFieldValue(eventId, spouseGuest.id, 'הוכנס למערכת ע"י *', enteredBy);
-				}
-			} else if (participationMen === 'השתתפות יחיד') {
-				// Create wife with same last name
-				const spousePayload = {
-					event_id: Number(eventId),
-					first_name: 'גברת',
-					last_name: lastName, // Same last name as the man
-					id_number: generateTempId(),
-					address: [street, buildingNumber, apartment, neighborhood, city].filter(Boolean).join(' '),
-					phone: `${dialCode} ${phone}`.trim(), // Same phone
-					email: email, // Same email
-					referral_source: 'vip_registration_spouse',
-					gender: 'female'
-				};
-				
-				const spouseRes = await fetch('http://localhost:8001/guests', {
-					method: 'POST', 
-					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-					body: JSON.stringify(spousePayload)
-				});
-				
-				if (spouseRes.ok) {
-					const spouseGuest = await spouseRes.json();
-					// Save spouse participation field
-					await saveGuestFieldValue(eventId, spouseGuest.id, 'עדכון השתתפות נשים דינר פ"נ *', 'השתתפות יחידה נשים');
-					// Copy other relevant fields to spouse
-					if (occupation) await saveGuestFieldValue(eventId, spouseGuest.id, 'עיסוק', occupation);
-					if (donationAbility) await saveGuestFieldValue(eventId, spouseGuest.id, 'יכולת תרומה', donationAbility);
-					if (enteredBy) await saveGuestFieldValue(eventId, spouseGuest.id, 'הוכנס למערכת ע"י *', enteredBy);
-				}
-			}
-
 			setValidationMessage('הטופס נשמר בהצלחה.');
 			setFirstName(''); setLastName(''); setSpouseName(''); setIdNumber('');
 			setDialCode('+972'); setPhone(''); setEmail('');
